@@ -4,18 +4,48 @@ import gradio as gr
 
 #openai.api_key = os.getenv("OPENAI_API_KEY")
 
-openai.api_key = "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"
+openai.api_key = "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"
 
 start_sequence = "\nAI:"
 restart_sequence = "\nHuman: "
+prompt = "The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, and very friendly.\n\nHuman: Hello, who are you?\nAI: I am an AI created by OpenAI. How can I help you today?\nHuman: "
 
-response = openai.Completion.create(
-  model="text-davinci-003",
-  prompt="The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, and very friendly.\n\nHuman: Hello, who are you?\nAI: I am an AI created by OpenAI. How can I help you today?\nHuman: how to remove plagrassim from my assignment\n Plagiarism can be removed from assignments by properly citing sources, rewriting sentences and paragraphs, and using proper paraphrasing techniques. Additionally, there are tools that can help you detect and remove plagiarized material from your assignment.",
-  temperature=0.9,
-  max_tokens=150,
-  top_p=1,
-  frequency_penalty=0,
-  presence_penalty=0.6,
-  stop=[" Human:", " AI:"]
-)
+def openai_create(prompt):
+
+    response = openai.Completion.create(
+    model="text-davinci-003",
+    prompt=prompt,
+    temperature=0.9,
+    max_tokens=150,
+    top_p=1,
+    frequency_penalty=0,
+    presence_penalty=0.6,
+    stop=[" Human:", " AI:"]
+    )
+
+    return response.choices[0].text
+
+
+
+def chatgpt_clone(input, history):
+    history = history or []
+    s = list(sum(history, ()))
+    s.append(input)
+    inp = ' '.join(s)
+    output = openai_create(inp)
+    history.append((input, output))
+    return history, history
+
+block = gr.Blocks()
+
+
+with block:
+    gr.Markdown("""<h1><center>Build Yo'own ChatGPT with OpenAI API & Gradio</center></h1>
+    """)
+    chatbot = gr.Chatbot()
+    message = gr.Textbox(placeholder=prompt)
+    state = gr.State()
+    submit = gr.Button("SEND")
+    submit.click(chatgpt_clone, inputs=[message, state], outputs=[chatbot, state])
+
+block.launch(debug = True)
